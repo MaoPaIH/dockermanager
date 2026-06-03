@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>系统配置 - SB Panel</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">SB Panel</div>
+    <nav class="nav">
+        <a th:href="@{/}">节点</a>
+        <a th:href="@{/nodes/new}">新建节点</a>
+        <a th:href="@{/settings}">系统配置</a>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">退出</button>
+        </form>
+    </nav>
+</header>
+
+<main class="page">
+    <div class="page-title">
+        <h1>系统默认配置</h1>
+        <a class="button" th:href="@{/}">返回</a>
+    </div>
+    <div class="notice" th:if="${notice}" th:text="${notice}"></div>
+
+    <form th:action="@{/settings}" th:object="${settingsForm}" method="post">
+
+        <section class="panel">
+            <h2>Docker</h2>
+            <div class="grid">
+                <div class="field">
+                    <label for="imageName">镜像</label>
+                    <input id="imageName" type="text" th:field="*{imageName}">
+                </div>
+                <div class="field">
+                    <label for="containerPrefix">容器名前缀</label>
+                    <input id="containerPrefix" type="text" th:field="*{containerPrefix}">
+                </div>
+                <label class="check">
+                    <input type="checkbox" th:field="*{pullLatest}">
+                    创建前拉取最新镜像
+                </label>
+                <label class="check">
+                    <input type="checkbox" th:field="*{applyFscarmenCompatibilityPatch}">
+                    兼容 fscarmen/sb 当前配置模板
+                </label>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>节点参数</h2>
+            <div class="grid">
+                <div class="field">
+                    <label for="serverIp">服务器公网 IP</label>
+                    <input id="serverIp" type="text" th:field="*{serverIp}">
+                </div>
+                <div class="field">
+                    <label for="cdn">CDN 优选域名</label>
+                    <input id="cdn" type="text" th:field="*{cdn}">
+                </div>
+                <div class="field">
+                    <label for="nodeNamePrefix">节点名前缀</label>
+                    <input id="nodeNamePrefix" type="text" th:field="*{nodeNamePrefix}">
+                </div>
+                <div class="field">
+                    <label for="realityPrivate">Reality 私钥</label>
+                    <input id="realityPrivate" type="text" th:field="*{realityPrivate}">
+                </div>
+            </div>
+            <div class="field" style="margin-top: 14px;">
+                <div class="field-title">默认启用协议</div>
+                <div class="checks">
+                    <label class="check" th:each="p : ${protocolOptions}">
+                        <input type="checkbox" th:field="*{defaultProtocols}" th:value="${p.name()}">
+                        <span th:text="${p.label()}"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Argo</h2>
+            <div class="grid">
+                <div class="field">
+                    <label for="argoDomain">固定 Argo 域名</label>
+                    <input id="argoDomain" type="text" th:field="*{argoDomain}" placeholder="留空即使用临时 Argo">
+                </div>
+                <div class="field">
+                    <label for="argoAuth">Argo 认证信息</label>
+                    <input id="argoAuth" type="text" th:field="*{argoAuth}" placeholder="留空即使用临时 Argo">
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>端口与默认限制</h2>
+            <div class="grid-3">
+                <div class="field">
+                    <label for="portRangeStart">起始端口下限</label>
+                    <input id="portRangeStart" type="number" th:field="*{portRangeStart}">
+                </div>
+                <div class="field">
+                    <label for="portRangeEnd">起始端口上限</label>
+                    <input id="portRangeEnd" type="number" th:field="*{portRangeEnd}">
+                </div>
+                <div class="field">
+                    <label for="portBlockSize">连续端口块大小</label>
+                    <input id="portBlockSize" type="number" th:field="*{portBlockSize}">
+                </div>
+                <div class="field">
+                    <label for="defaultTrafficLimitGb">默认流量上限 GB</label>
+                    <input id="defaultTrafficLimitGb" type="number" min="0" th:field="*{defaultTrafficLimitGb}">
+                </div>
+                <div class="field">
+                    <label for="defaultValidityDays">默认有效天数</label>
+                    <input id="defaultValidityDays" type="number" min="0" th:field="*{defaultValidityDays}">
+                </div>
+                <div class="field">
+                    <label for="statsIntervalSeconds">流量轮询间隔秒</label>
+                    <input id="statsIntervalSeconds" type="number" min="10" th:field="*{statsIntervalSeconds}">
+                </div>
+                <label class="check">
+                    <input type="checkbox" th:field="*{panelSubscriptionEnabled}">
+                    默认启用面板订阅入口
+                </label>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>高级环境变量</h2>
+            <div class="field">
+                <label for="extraEnv">每行一个 KEY=VALUE，会覆盖同名默认 env</label>
+                <textarea id="extraEnv" th:field="*{extraEnv}" spellcheck="false"></textarea>
+            </div>
+        </section>
+
+        <div class="actions">
+            <button class="primary" type="submit">保存配置</button>
+            <a class="button" th:href="@{/}">取消</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

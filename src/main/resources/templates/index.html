@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SB Panel</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">SB Panel</div>
+    <nav class="nav">
+        <a th:href="@{/}">节点</a>
+        <a th:href="@{/nodes/new}">新建节点</a>
+        <a th:href="@{/settings}">系统配置</a>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">退出</button>
+        </form>
+    </nav>
+</header>
+
+<main class="page">
+    <div class="page-title">
+        <div>
+            <h1>节点</h1>
+            <div class="muted">默认镜像 <span class="mono" th:text="${settings.imageName()}"></span></div>
+        </div>
+        <a class="button primary" th:href="@{/nodes/new}">新建节点</a>
+    </div>
+
+    <div class="notice" th:if="${notice}" th:text="${notice}"></div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>名称</th>
+                <th>状态</th>
+                <th>端口块</th>
+                <th>流量</th>
+                <th>到期</th>
+                <th>订阅</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${#lists.isEmpty(nodes)}">
+                <td colspan="7" class="muted">还没有节点</td>
+            </tr>
+            <tr th:each="node : ${nodes}">
+                <td>
+                    <a th:href="@{/nodes/{id}(id=${node.id})}" th:text="${node.name}"></a>
+                    <div class="muted mono" th:text="${node.containerName}"></div>
+                </td>
+                <td><span class="status" th:classappend="${node.status}" th:text="${node.status.label()}"></span></td>
+                <td class="mono" th:text="${node.startPort + ' - ' + (node.startPort + node.portBlockSize - 1)}"></td>
+                <td>
+                    <span th:text="${fmt.bytes(node.trafficUsedBytes)}"></span>
+                    <span class="muted" th:if="${node.trafficLimitBytes != null}"
+                          th:text="${'/ ' + fmt.bytes(node.trafficLimitBytes) + ' (' + fmt.percent(node.trafficUsedBytes, node.trafficLimitBytes) + ')'}"></span>
+                    <span class="muted" th:if="${node.trafficLimitBytes == null}">/ 不限制</span>
+                </td>
+                <td th:text="${fmt.instant(node.expiresAt)}"></td>
+                <td>
+                    <span th:if="${node.subscriptionEnabled}">开启</span>
+                    <span th:unless="${node.subscriptionEnabled}" class="muted">关闭</span>
+                </td>
+                <td><a th:href="@{/nodes/{id}(id=${node.id})}">详情</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>最近操作</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>时间</th>
+                <th>级别</th>
+                <th>动作</th>
+                <th>对象</th>
+                <th>说明</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="log : ${logs}">
+                <td th:text="${fmt.instant(log.createdAt())}"></td>
+                <td th:text="${log.level()}"></td>
+                <td class="mono" th:text="${log.action()}"></td>
+                <td th:text="${log.targetName() ?: '-'}"></td>
+                <td th:text="${log.message()}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

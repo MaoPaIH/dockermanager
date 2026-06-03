@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>新建节点 - SB Panel</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">SB Panel</div>
+    <nav class="nav">
+        <a th:href="@{/}">节点</a>
+        <a th:href="@{/nodes/new}">新建节点</a>
+        <a th:href="@{/settings}">系统配置</a>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">退出</button>
+        </form>
+    </nav>
+</header>
+
+<main class="page">
+    <div class="page-title">
+        <h1>新建节点</h1>
+        <a class="button" th:href="@{/}">返回</a>
+    </div>
+
+    <form th:action="@{/nodes}" th:object="${createNodeForm}" method="post">
+        <section class="panel">
+            <div class="grid">
+                <div class="field">
+                    <label for="name">备注名</label>
+                    <input id="name" type="text" th:field="*{name}" autofocus>
+                    <div class="error" th:errors="*{name}"></div>
+                </div>
+                <div class="field">
+                    <label for="trafficLimitGb">流量上限 GB</label>
+                    <input id="trafficLimitGb" type="number" min="0" th:field="*{trafficLimitGb}">
+                </div>
+                <div class="field">
+                    <label for="expiresAt">到期时间</label>
+                    <input id="expiresAt" type="datetime-local" th:field="*{expiresAt}">
+                </div>
+                <label class="check">
+                    <input type="checkbox" th:field="*{subscriptionEnabled}">
+                    启用面板订阅入口
+                </label>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>启用协议</h2>
+            <div class="checks">
+                <label class="check" th:each="p : ${protocolOptions}">
+                    <input type="checkbox" th:field="*{protocols}" th:value="${p.name()}">
+                    <span th:text="${p.label()}"></span>
+                </label>
+            </div>
+        </section>
+
+        <div class="actions">
+            <button class="primary" type="submit">创建容器</button>
+            <a class="button" th:href="@{/}">取消</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

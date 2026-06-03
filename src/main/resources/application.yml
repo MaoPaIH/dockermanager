@@ -1,0 +1,30 @@
+server:
+  port: ${PANEL_PORT:8080}
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: sb-panel
+  datasource:
+    url: jdbc:sqlite:${PANEL_DB_PATH:./sb-panel.db}
+    driver-class-name: org.sqlite.JDBC
+  thymeleaf:
+    cache: false
+
+panel:
+  admin-username: ${PANEL_ADMIN_USERNAME:admin}
+  admin-password: ${PANEL_ADMIN_PASSWORD:change-me-now}
+  public-base-url: ${PANEL_PUBLIC_BASE_URL:http://127.0.0.1:8080}
+  monitor-tick-ms: ${PANEL_MONITOR_TICK_MS:10000}
+  docker-host: ${PANEL_DOCKER_HOST:}
+
+logging:
+  level:
+    root: INFO
+    dev.sbox.panel: INFO
+  file:
+    name: ${PANEL_LOG_FILE:./logs/sb-panel.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 20MB
+      max-history: 14

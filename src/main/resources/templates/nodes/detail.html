@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${node.name} + ' - SB Panel'">节点详情</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand">SB Panel</div>
+    <nav class="nav">
+        <a th:href="@{/}">节点</a>
+        <a th:href="@{/nodes/new}">新建节点</a>
+        <a th:href="@{/settings}">系统配置</a>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">退出</button>
+        </form>
+    </nav>
+</header>
+
+<main class="page">
+    <div class="page-title">
+        <div>
+            <h1 th:text="${node.name}"></h1>
+            <div class="muted mono" th:text="${node.containerName}"></div>
+        </div>
+        <a class="button" th:href="@{/}">返回</a>
+    </div>
+    <div class="notice" th:if="${notice}" th:text="${notice}"></div>
+
+    <section class="panel">
+        <div class="grid-3">
+            <div>
+                <div class="field-title">状态</div>
+                <span class="status" th:classappend="${node.status}" th:text="${node.status.label()}"></span>
+            </div>
+            <div>
+                <div class="field-title">端口块</div>
+                <div class="mono" th:text="${node.startPort + ' - ' + (node.startPort + node.portBlockSize - 1)}"></div>
+            </div>
+            <div>
+                <div class="field-title">流量</div>
+                <span th:text="${fmt.bytes(node.trafficUsedBytes)}"></span>
+                <span class="muted" th:if="${node.trafficLimitBytes != null}"
+                      th:text="${'/ ' + fmt.bytes(node.trafficLimitBytes) + ' (' + fmt.percent(node.trafficUsedBytes, node.trafficLimitBytes) + ')'}"></span>
+                <span class="muted" th:if="${node.trafficLimitBytes == null}">/ 不限制</span>
+            </div>
+            <div>
+                <div class="field-title">到期时间</div>
+                <div th:text="${fmt.instant(node.expiresAt)}"></div>
+            </div>
+            <div>
+                <div class="field-title">Argo 当前订阅</div>
+                <div class="mono" th:text="${node.currentArgoUrl ?: '-'}"></div>
+            </div>
+            <div>
+                <div class="field-title">容器 ID</div>
+                <div class="mono" th:text="${node.containerId ?: '-'}"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>订阅</h2>
+        <div class="field">
+            <label>稳定订阅地址</label>
+            <input type="text" class="mono" readonly th:value="${subscriptionUrl}">
+        </div>
+        <div class="muted" style="margin-top: 8px;">自动适配：Clash、ShadowRocket、Neko、V2rayN、sing-box 客户端会按 User-Agent 返回对应订阅。</div>
+    </section>
+
+    <section class="panel">
+        <h2>可热修改配置</h2>
+        <form th:action="@{/nodes/{id}/editable(id=${node.id})}" th:object="${editableForm}" method="post">
+            <div class="grid">
+                <div class="field">
+                    <label for="name">备注名</label>
+                    <input id="name" type="text" th:field="*{name}">
+                </div>
+                <div class="field">
+                    <label for="trafficLimitGb">流量上限 GB</label>
+                    <input id="trafficLimitGb" type="number" min="0" th:field="*{trafficLimitGb}">
+                </div>
+                <div class="field">
+                    <label for="expiresAt">到期时间</label>
+                    <input id="expiresAt" type="datetime-local" th:field="*{expiresAt}">
+                </div>
+                <label class="check">
+                    <input type="checkbox" th:field="*{subscriptionEnabled}">
+                    启用面板订阅入口
+                </label>
+            </div>
+            <div class="actions" style="margin-top: 14px;">
+                <button class="primary" type="submit">保存</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>容器操作</h2>
+        <div class="actions">
+            <form th:action="@{/nodes/{id}/start(id=${node.id})}" method="post">
+                <button type="submit">启动</button>
+            </form>
+            <form th:action="@{/nodes/{id}/stop(id=${node.id})}" method="post">
+                <button type="submit">停止</button>
+            </form>
+            <form th:action="@{/nodes/{id}/restart(id=${node.id})}" method="post">
+                <button type="submit">重启</button>
+            </form>
+            <form th:action="@{/nodes/{id}/reset-traffic(id=${node.id})}" method="post">
+                <button type="submit">流量清零</button>
+            </form>
+            <form th:action="@{/nodes/{id}/delete(id=${node.id})}" method="post">
+                <button class="danger" type="submit">删除容器</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>创建参数快照</h2>
+        <div class="grid">
+            <div>
+                <div class="field-title">镜像</div>
+                <div class="mono" th:text="${node.imageName}"></div>
+            </div>
+            <div>
+                <div class="field-title">协议</div>
+                <div class="mono" th:text="${node.protocols}"></div>
+            </div>
+            <div>
+                <div class="field-title">UUID</div>
+                <div class="mono" th:text="${node.uuid}"></div>
+            </div>
+            <div>
+                <div class="field-title">SERVER_IP</div>
+                <div class="mono" th:text="${node.serverIp}"></div>
+            </div>
+        </div>
+        <h2>Env JSON</h2>
+        <pre class="pre" th:text="${node.envJson}"></pre>
+    </section>
+
+    <h2>审计日志</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>时间</th>
+                <th>级别</th>
+                <th>动作</th>
+                <th>说明</th>
+                <th>详情</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="log : ${logs}">
+                <td th:text="${fmt.instant(log.createdAt())}"></td>
+                <td th:text="${log.level()}"></td>
+                <td class="mono" th:text="${log.action()}"></td>
+                <td th:text="${log.message()}"></td>
+                <td class="mono" th:text="${log.details() ?: '-'}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>容器输出</h2>
+    <div class="grid">
+        <section>
+            <h2>docker logs</h2>
+            <pre class="pre" th:text="${dockerLogs}"></pre>
+        </section>
+        <section>
+            <h2>box.log</h2>
+            <pre class="pre" th:text="${boxLogs}"></pre>
+        </section>
+    </div>
+
+    <h2>list</h2>
+    <pre class="pre" th:text="${listText}"></pre>
+</main>
+</body>
+</html>
