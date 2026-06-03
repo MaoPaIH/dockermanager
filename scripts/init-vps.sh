@@ -78,10 +78,23 @@ write_env_line() {
 }
 
 install_packages() {
-  log "Installing Docker, JDK and base tools..."
+  log "Updating system packages..."
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
-  apt-get install -y ca-certificates curl gnupg openssl docker.io "$JAVA_PACKAGE"
+  apt-get upgrade -y
+
+  log "Installing JDK and base tools..."
+  apt-get install -y ca-certificates curl gnupg openssl iptables "$JAVA_PACKAGE"
+
+  if command -v docker >/dev/null 2>&1; then
+    log "Docker already installed: $(docker --version)"
+    return
+  fi
+
+  log "Installing Docker with get.docker.com..."
+  curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+  sh /tmp/get-docker.sh
+  rm -f /tmp/get-docker.sh
 }
 
 enable_bbr() {
@@ -118,16 +131,27 @@ EOF
   docker info >/dev/null
 }
 
-allow_panel_port() {
-  if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -qi '^Status: active'; then
-    log "Allowing panel port in ufw: $PANEL_PORT/tcp"
-    ufw allow "${PANEL_PORT}/tcp"
+disable_firewall() {
+  log "Disabling host firewall..."
+  if command -v ufw >/dev/null 2>&1; then
+    ufw --force disable || true
+    systemctl disable --now ufw >/dev/null 2>&1 || true
   fi
 
-  if command -v firewall-cmd >/dev/null 2>&1 && firewall-cmd --state >/dev/null 2>&1; then
-    log "Allowing panel port in firewalld: $PANEL_PORT/tcp"
-    firewall-cmd --permanent --add-port="${PANEL_PORT}/tcp"
-    firewall-cmd --reload
+  if command -v firewall-cmd >/dev/null 2>&1; then
+    systemctl disable --now firewalld >/dev/null 2>&1 || true
+  fi
+
+  if command -v iptables >/dev/null 2>&1; then
+    iptables -P INPUT ACCEPT || true
+    iptables -P FORWARD ACCEPT || true
+    iptables -P OUTPUT ACCEPT || true
+  fi
+
+  if command -v ip6tables >/dev/null 2>&1; then
+    ip6tables -P INPUT ACCEPT || true
+    ip6tables -P FORWARD ACCEPT || true
+    ip6tables -P OUTPUT ACCEPT || true
   fi
 }
 
@@ -233,9 +257,9 @@ main() {
   require_root
   require_supported_os
   install_packages
+  disable_firewall
   enable_bbr
   configure_docker
-  allow_panel_port
   download_panel_jar
   write_panel_config
   write_systemd_service
