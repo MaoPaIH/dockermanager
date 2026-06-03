@@ -58,7 +58,6 @@ http://YOUR_PUBLIC_IP:8080/login
 curl -fsSLO https://raw.githubusercontent.com/YOUR_NAME/YOUR_REPO/main/scripts/init-vps.sh
 chmod +x init-vps.sh
 
-PANEL_JAR_URL='https://github.com/YOUR_NAME/YOUR_REPO/releases/latest/download/sb-panel-0.1.0.jar' \
 PANEL_ADMIN_PASSWORD='change-this-password' \
 PANEL_PORT=18080 \
 ./init-vps.sh
